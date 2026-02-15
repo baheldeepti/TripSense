@@ -1,0 +1,55 @@
+Perfect refinement! Here's the updated logic:
+
+Smart Flight Detection Flow
+Trigger: Airport Selected as Destination
+When user enters an airport as their destination (detected by airport codes like BOS, SFO, JFK or names like "Logan Airport", "San Francisco International"):
+Agent automatically asks:
+
+"I see you're heading to [Airport Name]. Are you catching a flight? If yes, please share your flight number or destination city so I can monitor it for you."
+
+User Response Handling:
+Option 1 - User provides flight number:
+
+Input: "UA 1234" or "United 1234"
+Agent fetches: Flight details, departure time, gate, current status
+Agent confirms: "Got it! United Airlines flight 1234 to San Francisco, departing at 5:00 PM from Gate B22. I'll monitor this and optimize your departure time."
+
+Option 2 - User provides destination city:
+
+Input: "Going to San Francisco" or "SF"
+Agent asks: "What time is your flight to San Francisco?"
+Then monitors flights matching that route and time
+
+Option 3 - User says no/just picking someone up:
+
+Input: "No, just picking up my friend"
+Agent switches mode: "Got it! I'll help you time the pickup perfectly. What's their flight number or arrival time?"
+
+Enhanced Context Awareness:
+IF destination.contains(airport_codes) OR destination.contains("airport"):
+    ASK: "Are you catching a flight?"
+    
+    IF yes:
+        ASK: "Flight number or destination city?"
+        FETCH: Flight details
+        ACTIVATE: Flight monitoring mode
+        
+    IF no/pickup:
+        ASK: "Picking someone up? Share their flight details for accurate timing."
+        SWITCH: Pickup mode (track arriving flight instead)
+Example Conversation:
+User: "I need to go to Logan Airport"
+Agent: "I see you're heading to Boston Logan. Are you catching a flight? If yes, share your flight number or destination so I can track it for you."
+User: "Yes, Delta 405"
+Agent: "Perfect! Delta 405 to Los Angeles, departing 3:45 PM from Terminal A. Currently on time. Based on traffic, you should leave by 1:15 PM. I'll monitor your flight and alert you if anything changes. Want me to book an Uber for 1:15 PM?"
+
+Implementation Note:
+Airport Detection Logic:
+javascript// Detect if destination is an airport
+const airportKeywords = ['airport', 'international', 'logan', 'jfk', 'lax', 'sfo', 'ord'];
+const airportCodes = ['BOS', 'SFO', 'JFK', 'LAX', 'ORD', ...]; // IATA codes
+
+if (destination matches airportKeywords OR airportCodes) {
+    triggerFlightInquiry();
+}
+This makes the interaction feel naturally intelligent — the agent recognizes context (airport = likely flight) and asks the right follow-up question automatically.

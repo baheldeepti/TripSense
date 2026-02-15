@@ -1,0 +1,18 @@
+Build a full-stack web application called Context-Aware Life Copilot that integrates with the TinyFish API as an AI agent backend. The goal of the app is to proactively help users avoid wasted trips, missed events, or poor logistical decisions by analyzing real-world context such as time, user location, travel ETA, venue hours, and calendar commitments.
+
+The application should include a modern responsive web UI where users can enter a destination, event, or plan. The backend should securely call the TinyFish API (using an environment variable like TINYFISH_API_KEY) and send structured context including destination, current time, location, estimated travel duration, and optional user preferences. The TinyFish agent should analyze the situation, detect risks (e.g., arriving after closing time, tight schedule conflicts, excessive travel time), and return recommendations plus reasoning.
+
+The backend must act as a middleware layer so API keys are never exposed in the frontend. Structure the backend with a clear endpoint like /agent/analyze-plan that accepts plan details, calls TinyFish, and returns structured recommendations. Include proper error handling, logging, and a fallback mock response if the TinyFish API is unavailable.
+
+Frontend features should include:
+	•	Destination/event input form
+	•	Context summary panel (ETA, hours, timing risk)
+	•	AI recommendations card showing warnings and alternatives
+	•	Clear explanation of reasoning from the agent
+	•	Action suggestions like alternate destination or adjusted timing
+
+Design the UI clean and minimal, similar to productivity apps, with card-based layout and subtle alert highlighting. Make the app mobile responsive.
+
+If external APIs for maps, hours, or calendar are unavailable, simulate realistic mock data so the demo clearly shows the AI preventing a bad plan scenario.
+
+The finished project should run fully on Replit with backend, frontend, environment variable support, and TinyFish API integration structured so real credentials can be plugged in easily later.
