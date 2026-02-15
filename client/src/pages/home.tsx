@@ -94,7 +94,7 @@ export default function Home() {
             </div>
             <div>
               <h1 className="text-sm font-bold leading-tight tracking-tight" data-testid="text-app-title">
-                <span className="gradient-text">TripSense</span>
+                <span className="gradient-text">TripGuard</span>
               </h1>
               <p className="text-[11px] text-muted-foreground hidden sm:block">Smart trip intelligence</p>
             </div>

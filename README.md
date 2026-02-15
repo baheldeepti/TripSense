@@ -1,10 +1,10 @@
-# TripGuard
+# TripSense
 
 **AI-Powered Smart Trip Intelligence**
 
-TripGuard helps you avoid wasted trips, missed flights, and poor logistical decisions. Enter your destination, departure time, and transport mode — and get real-time risk analysis, flight status tracking, and smart alternatives powered by AI.
+TripSense helps you avoid wasted trips, missed flights, and poor logistical decisions. Enter your destination, departure time, and transport mode — and get real-time risk analysis, flight status tracking, and smart alternatives powered by AI.
 
-![TripGuard Cover](client/public/images/TripGuard-cover.png)
+![TripSense Cover](client/public/images/tripsense-cover.png)
 
 ---
 
@@ -28,7 +28,7 @@ TripGuard helps you avoid wasted trips, missed flights, and poor logistical deci
 
 ## Demo Video
 
-A cinematic demo video is available at [`client/public/videos/TripGuard-marketing.mp4`](client/public/videos/TripGuard-marketing.mp4).
+A cinematic demo video is available at [`client/public/videos/tripsense-marketing.mp4`](client/public/videos/tripsense-marketing.mp4).
 
 ---
 
@@ -58,8 +58,8 @@ A cinematic demo video is available at [`client/public/videos/TripGuard-marketin
 
 ```bash
 # Clone the repository
-git clone https://github.com/baheldeepti/TripGuard.git
-cd TripGuard
+git clone https://github.com/baheldeepti/TripSense.git
+cd TripSense
 
 # Install dependencies
 npm install
@@ -98,7 +98,7 @@ The app runs on **http://localhost:5000**.
 2. **Set your starting point** — Optionally pick where you're coming from
 3. **Choose transport mode** — Driving, transit, walking, cycling, or rideshare
 4. **Enter departure date and time** — When you plan to leave
-5. **Add flight details** (if applicable) — TripGuard detects airports automatically and asks for airline and flight number
+5. **Add flight details** (if applicable) — TripSense detects airports automatically and asks for airline and flight number
 6. **Get your analysis** — AI evaluates your plan and returns:
    - Overall status (Good / Caution / Danger)
    - Context summary (travel time, distance, venue hours)
@@ -111,7 +111,7 @@ The app runs on **http://localhost:5000**.
 ## Project Structure
 
 ```
-TripGuard/
+TripSense/
 ├── client/                  # React frontend
 │   ├── src/
 │   │   ├── components/      # Feature + UI components

@@ -15,7 +15,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { MapPin, Calendar, Navigation, Loader2, Sparkles, LocateFixed, Clock, Plane, Users, X, ChevronDown, ChevronUp, Car, Train, Footprints, Bike } from "lucide-react";
+import { MapPin, Calendar, Navigation, Loader2, Sparkles, LocateFixed, Clock, Plane, Users, X, ChevronDown, ChevronUp, Car, Train, Footprints, Bike, Pencil } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { FlightDialog, detectAirport } from "@/components/flight-dialog";
 import { LocationPicker, type LocationResult } from "@/components/location-picker";
@@ -28,6 +28,7 @@ interface PlanFormProps {
 export function PlanForm({ onSubmit, isLoading }: PlanFormProps) {
   const [detectingLocation, setDetectingLocation] = useState(false);
   const [flightDialogOpen, setFlightDialogOpen] = useState(false);
+  const [flightEditData, setFlightEditData] = useState<{flightMode: string; flightNumber?: string; flightAirline?: string; flightDestinationCity?: string; flightDepartureTime?: string; pickupFlightNumber?: string; pickupArrivalTime?: string} | undefined>(undefined);
   const [detectedAirport, setDetectedAirport] = useState("");
   const [showAddressDetails, setShowAddressDetails] = useState(false);
   const [validatingDestination, setValidatingDestination] = useState(false);
@@ -79,6 +80,7 @@ export function PlanForm({ onSubmit, isLoading }: PlanFormProps) {
     const { isAirport, airportName } = detectAirport(value);
     if (isAirport && form.getValues("flightMode") === "none") {
       setDetectedAirport(airportName);
+      setFlightEditData(undefined);
       setFlightDialogOpen(true);
     }
   }, [form]);
@@ -152,13 +154,15 @@ export function PlanForm({ onSubmit, isLoading }: PlanFormProps) {
     }
     setFlightDialogOpen(false);
 
-    const modeLabel = data.flightMode === "catching" ? "Flight monitoring" : data.flightMode === "pickup" ? "Pickup timing" : "";
-    if (modeLabel) {
+    if (data.flightMode === "catching") {
       toast({
-        title: `${modeLabel} activated`,
-        description: data.flightMode === "catching"
-          ? `Tracking ${data.flightNumber || data.flightDestinationCity || "your flight"} — I'll optimize your departure.`
-          : `Tracking arrival of ${data.pickupFlightNumber || "their flight"} — I'll help time the pickup.`,
+        title: "Flight tracking on",
+        description: `I'll check ${data.flightNumber || data.flightDestinationCity || "your flight"} status and make sure you get there on time.`,
+      });
+    } else if (data.flightMode === "pickup") {
+      toast({
+        title: "Pickup mode on",
+        description: `I'll track ${data.pickupFlightNumber || "their flight"} and help you time the pickup perfectly.`,
       });
     }
   }, [form, toast]);
@@ -193,7 +197,7 @@ export function PlanForm({ onSubmit, isLoading }: PlanFormProps) {
         try {
           const response = await fetch(
             `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&zoom=18&addressdetails=1`,
-            { headers: { "Accept-Language": "en", "User-Agent": "TripSense/1.0" } }
+            { headers: { "Accept-Language": "en", "User-Agent": "TripGuard/1.0" } }
           );
           const data = await response.json();
           if (data.display_name) {
@@ -238,6 +242,11 @@ export function PlanForm({ onSubmit, isLoading }: PlanFormProps) {
   };
 
   const validateAndSubmit = useCallback(async (data: PlanRequest) => {
+    const tzAbbr = new Intl.DateTimeFormat("en-US", { timeZoneName: "short" })
+      .formatToParts(new Date())
+      .find(p => p.type === "timeZoneName")?.value || "";
+    data.userTimezone = tzAbbr;
+
     if (locationSelectedFromPicker.current) {
       onSubmit(data);
       return;
@@ -252,7 +261,7 @@ export function PlanForm({ onSubmit, isLoading }: PlanFormProps) {
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(name)}&addressdetails=1&limit=1`,
-        { headers: { "Accept-Language": "en", "User-Agent": "TripSense/1.0" } }
+        { headers: { "Accept-Language": "en", "User-Agent": "TripGuard/1.0" } }
       );
       const results = await res.json();
 
@@ -269,7 +278,9 @@ export function PlanForm({ onSubmit, isLoading }: PlanFormProps) {
         });
         locationSelectedFromPicker.current = true;
         handleDestinationBlur(name);
-        onSubmit(form.getValues());
+        const vals = form.getValues();
+        vals.userTimezone = tzAbbr;
+        onSubmit(vals);
       } else {
         setDestinationError("I couldn't find that place. Please pick a location from the search suggestions or the map.");
       }
@@ -381,19 +392,41 @@ export function PlanForm({ onSubmit, isLoading }: PlanFormProps) {
                         <Users className="h-4 w-4 text-primary" />
                       )}
                       <span className="text-sm font-medium">
-                        {flightMode === "catching" ? "Flight Mode" : "Pickup Mode"}
+                        {flightMode === "catching" ? "Catching a Flight" : "Picking Someone Up"}
                       </span>
-                      <Badge variant="secondary" className="text-xs">Active</Badge>
                     </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={clearFlightData}
-                      data-testid="button-clear-flight"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </Button>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          const current = form.getValues();
+                          setFlightEditData({
+                            flightMode: current.flightMode || "none",
+                            flightNumber: current.flightNumber || undefined,
+                            flightAirline: current.flightAirline || undefined,
+                            flightDestinationCity: current.flightDestinationCity || undefined,
+                            flightDepartureTime: current.flightDepartureTime || undefined,
+                            pickupFlightNumber: current.pickupFlightNumber || undefined,
+                            pickupArrivalTime: current.pickupArrivalTime || undefined,
+                          });
+                          setFlightDialogOpen(true);
+                        }}
+                        data-testid="button-edit-flight"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={clearFlightData}
+                        data-testid="button-clear-flight"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
                   </div>
                   <p className="text-xs text-muted-foreground">
                     {flightMode === "catching" && (
@@ -402,15 +435,21 @@ export function PlanForm({ onSubmit, isLoading }: PlanFormProps) {
                         {flightAirline && flightNumber && <span> </span>}
                         {flightNumber && <span>Flight <span className="font-medium text-foreground">{flightNumber}</span></span>}
                         {(flightAirline || flightNumber) && flightDestCity && <span> · </span>}
-                        {flightDestCity && <span>To: <span className="font-medium text-foreground">{flightDestCity}</span></span>}
-                        {!flightNumber && !flightDestCity && !flightAirline && <span>Flight details will be included in analysis</span>}
+                        {flightDestCity && <span>To <span className="font-medium text-foreground">{flightDestCity}</span></span>}
+                        {form.watch("flightDepartureTime") && (
+                          <span> · Departs <span className="font-medium text-foreground">{form.watch("flightDepartureTime")}</span></span>
+                        )}
+                        {!flightNumber && !flightDestCity && !flightAirline && <span>I'll check your flight status and timing</span>}
                       </>
                     )}
                     {flightMode === "pickup" && (
                       <>
                         {flightAirline && <span><span className="font-medium text-foreground">{flightAirline}</span> </span>}
                         {pickupFlightNum && <span>Flight <span className="font-medium text-foreground">{pickupFlightNum}</span></span>}
-                        {!pickupFlightNum && !flightAirline && <span>Pickup timing will be optimized</span>}
+                        {form.watch("pickupArrivalTime") && (
+                          <span> · Lands <span className="font-medium text-foreground">{form.watch("pickupArrivalTime")}</span></span>
+                        )}
+                        {!pickupFlightNum && !flightAirline && <span>I'll help you time the pickup perfectly</span>}
                       </>
                     )}
                   </p>
@@ -674,8 +713,9 @@ export function PlanForm({ onSubmit, isLoading }: PlanFormProps) {
       <FlightDialog
         open={flightDialogOpen}
         airportName={detectedAirport}
-        onClose={() => setFlightDialogOpen(false)}
+        onClose={() => { setFlightDialogOpen(false); setFlightEditData(undefined); }}
         onConfirm={handleFlightConfirm}
+        initialData={flightEditData as any}
       />
     </>
   );

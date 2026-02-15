@@ -1,8 +1,8 @@
-# Context-Aware Life Copilot
+# TripGuard
 
 ## Overview
 
-This is a full-stack web application called **Context-Aware Life Copilot** — an AI-powered trip planner that helps users avoid wasted trips, missed events, and poor logistical decisions. Users enter a destination, departure time, and transport mode, and the backend analyzes timing risks, venue hours, and travel context to provide warnings, suggestions, and smart alternatives.
+This is a full-stack web application called **TripGuard** — an AI-powered trip planner that helps users avoid wasted trips, missed events, and poor logistical decisions. Users enter a destination, departure time, and transport mode, and the backend analyzes timing risks, venue hours, and travel context to provide warnings, suggestions, and smart alternatives.
 
 The app follows a monorepo structure with a React frontend (`client/`), an Express backend (`server/`), and shared types/schemas (`shared/`). It's designed to run fully on Replit with environment variable support for API keys.
 

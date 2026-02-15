@@ -36,6 +36,7 @@ export const planRequestSchema = z.object({
   flightDepartureTime: z.string().optional(),
   pickupFlightNumber: z.string().max(20).optional().transform(s => s?.trim()),
   pickupArrivalTime: z.string().optional(),
+  userTimezone: z.string().max(50).optional(),
 });
 
 export type PlanRequest = z.infer<typeof planRequestSchema>;
@@ -45,9 +46,12 @@ export interface ContextSummary {
   fullAddress?: string;
   eventName?: string;
   departureTime: string;
+  userDepartureTime: string;
+  userTimezone?: string;
   currentTime: string;
   estimatedTravelMinutes: number;
   estimatedArrivalTime: string;
+  userArrivalTime: string;
   venueHours: string;
   venueClosingTime: string;
   transportMode: string;

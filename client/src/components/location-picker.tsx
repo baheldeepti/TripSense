@@ -22,7 +22,7 @@ L.Marker.prototype.options.icon = defaultIcon;
 
 const NOMINATIM_HEADERS = {
   "Accept-Language": "en",
-  "User-Agent": "TripSense/1.0",
+  "User-Agent": "TripGuard/1.0",
 };
 
 export interface LocationResult {

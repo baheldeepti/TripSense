@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Plane, Users, ArrowRight } from "lucide-react";
+import { Plane, Users, ArrowRight, ArrowLeft } from "lucide-react";
 
 const KNOWN_IATA_CODES = new Set([
   "ATL", "PEK", "LAX", "DXB", "HND", "ORD", "LHR", "PVG", "CDG", "DFW",
@@ -73,9 +73,10 @@ interface FlightDialogProps {
   airportName: string;
   onClose: () => void;
   onConfirm: (data: FlightData) => void;
+  initialData?: FlightData;
 }
 
-export function FlightDialog({ open, airportName, onClose, onConfirm }: FlightDialogProps) {
+export function FlightDialog({ open, airportName, onClose, onConfirm, initialData }: FlightDialogProps) {
   const [step, setStep] = useState<DialogStep>("ask_intent");
   const [flightNumber, setFlightNumber] = useState("");
   const [airline, setAirline] = useState("");
@@ -87,16 +88,38 @@ export function FlightDialog({ open, airportName, onClose, onConfirm }: FlightDi
 
   useEffect(() => {
     if (open) {
-      setStep("ask_intent");
-      setFlightNumber("");
-      setAirline("");
-      setDestinationCity("");
-      setFlightTime("");
-      setPickupFlight("");
-      setPickupAirline("");
-      setPickupTime("");
+      if (initialData && initialData.flightMode !== "none") {
+        if (initialData.flightMode === "catching") {
+          setStep("catching_details");
+          setFlightNumber(initialData.flightNumber || "");
+          setAirline(initialData.flightAirline || "");
+          setDestinationCity(initialData.flightDestinationCity || "");
+          setFlightTime(initialData.flightDepartureTime || "");
+          setPickupFlight("");
+          setPickupAirline("");
+          setPickupTime("");
+        } else if (initialData.flightMode === "pickup") {
+          setStep("pickup_details");
+          setPickupFlight(initialData.pickupFlightNumber || "");
+          setPickupAirline(initialData.flightAirline || "");
+          setPickupTime(initialData.pickupArrivalTime || "");
+          setFlightNumber("");
+          setAirline("");
+          setDestinationCity("");
+          setFlightTime("");
+        }
+      } else {
+        setStep("ask_intent");
+        setFlightNumber("");
+        setAirline("");
+        setDestinationCity("");
+        setFlightTime("");
+        setPickupFlight("");
+        setPickupAirline("");
+        setPickupTime("");
+      }
     }
-  }, [open]);
+  }, [open, initialData]);
 
   const handleCatching = useCallback(() => setStep("catching_details"), []);
   const handlePickup = useCallback(() => setStep("pickup_details"), []);
@@ -132,10 +155,10 @@ export function FlightDialog({ open, airportName, onClose, onConfirm }: FlightDi
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 flex-wrap">
                 <Plane className="h-5 w-5 text-primary" />
-                Airport Detected
+                Heading to the airport?
               </DialogTitle>
               <DialogDescription>
-                I see you're heading to <span className="font-medium text-foreground">{airportName}</span>. Are you catching a flight or picking someone up?
+                You picked <span className="font-medium text-foreground">{airportName}</span>. What's the reason for your trip?
               </DialogDescription>
             </DialogHeader>
             <div className="flex flex-col gap-2 pt-2">
@@ -145,8 +168,11 @@ export function FlightDialog({ open, airportName, onClose, onConfirm }: FlightDi
                 onClick={handleCatching}
                 data-testid="button-flight-catching"
               >
-                <Plane className="h-4 w-4" />
-                I'm catching a flight
+                <Plane className="h-4 w-4 shrink-0" />
+                <div className="text-left">
+                  <div className="font-medium">Catching a flight</div>
+                  <div className="text-[11px] text-muted-foreground font-normal">I'll check if you have enough time to make it</div>
+                </div>
               </Button>
               <Button
                 variant="outline"
@@ -154,8 +180,11 @@ export function FlightDialog({ open, airportName, onClose, onConfirm }: FlightDi
                 onClick={handlePickup}
                 data-testid="button-flight-pickup"
               >
-                <Users className="h-4 w-4" />
-                I'm picking someone up
+                <Users className="h-4 w-4 shrink-0" />
+                <div className="text-left">
+                  <div className="font-medium">Picking someone up</div>
+                  <div className="text-[11px] text-muted-foreground font-normal">I'll help you time it so they're not waiting</div>
+                </div>
               </Button>
               <Button
                 variant="ghost"
@@ -177,7 +206,7 @@ export function FlightDialog({ open, airportName, onClose, onConfirm }: FlightDi
                 Your Flight Details
               </DialogTitle>
               <DialogDescription>
-                Share your flight number or destination so I can optimize your departure timing.
+                Tell me about your flight and I'll make sure you get there on time.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3 pt-2">
@@ -185,7 +214,7 @@ export function FlightDialog({ open, airportName, onClose, onConfirm }: FlightDi
                 <Label htmlFor="flight-airline">Airline</Label>
                 <Input
                   id="flight-airline"
-                  placeholder="e.g. United, Delta, American, Southwest"
+                  placeholder="e.g. United, Delta, Southwest"
                   value={airline}
                   onChange={(e) => setAirline(e.target.value)}
                   data-testid="input-flight-airline"
@@ -202,17 +231,17 @@ export function FlightDialog({ open, airportName, onClose, onConfirm }: FlightDi
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="flight-dest">Destination City</Label>
+                <Label htmlFor="flight-dest">Where are you flying to?</Label>
                 <Input
                   id="flight-dest"
-                  placeholder="e.g. San Francisco, Los Angeles"
+                  placeholder="e.g. Los Cabos, New York"
                   value={destinationCity}
                   onChange={(e) => setDestinationCity(e.target.value)}
                   data-testid="input-flight-destination"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="flight-time">Flight Departure Time</Label>
+                <Label htmlFor="flight-time">Scheduled departure time</Label>
                 <Input
                   id="flight-time"
                   type="time"
@@ -224,6 +253,7 @@ export function FlightDialog({ open, airportName, onClose, onConfirm }: FlightDi
             </div>
             <DialogFooter className="gap-2">
               <Button variant="ghost" onClick={() => setStep("ask_intent")} data-testid="button-flight-back">
+                <ArrowLeft className="h-4 w-4 mr-1.5" />
                 Back
               </Button>
               <Button
@@ -231,7 +261,7 @@ export function FlightDialog({ open, airportName, onClose, onConfirm }: FlightDi
                 disabled={!flightNumber && !destinationCity}
                 data-testid="button-flight-confirm"
               >
-                Confirm
+                Track my flight
                 <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </DialogFooter>
@@ -243,25 +273,25 @@ export function FlightDialog({ open, airportName, onClose, onConfirm }: FlightDi
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 flex-wrap">
                 <Users className="h-5 w-5 text-primary" />
-                Pickup Details
+                Who are you picking up?
               </DialogTitle>
               <DialogDescription>
-                Share the arriving flight details so I can help you time the pickup perfectly.
+                Share their flight details and I'll tell you the best time to leave so you arrive right when they walk out.
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-3 pt-2">
               <div className="space-y-1.5">
-                <Label htmlFor="pickup-airline">Airline</Label>
+                <Label htmlFor="pickup-airline">Their airline</Label>
                 <Input
                   id="pickup-airline"
-                  placeholder="e.g. United, Delta, American, Southwest"
+                  placeholder="e.g. United, Delta, Southwest"
                   value={pickupAirline}
                   onChange={(e) => setPickupAirline(e.target.value)}
                   data-testid="input-pickup-airline"
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="pickup-flight">Their Flight Number</Label>
+                <Label htmlFor="pickup-flight">Their flight number</Label>
                 <Input
                   id="pickup-flight"
                   placeholder="e.g. AA 789, UA 302"
@@ -271,7 +301,7 @@ export function FlightDialog({ open, airportName, onClose, onConfirm }: FlightDi
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="pickup-time">Expected Arrival Time</Label>
+                <Label htmlFor="pickup-time">When does their flight land?</Label>
                 <Input
                   id="pickup-time"
                   type="time"
@@ -283,6 +313,7 @@ export function FlightDialog({ open, airportName, onClose, onConfirm }: FlightDi
             </div>
             <DialogFooter className="gap-2">
               <Button variant="ghost" onClick={() => setStep("ask_intent")} data-testid="button-pickup-back">
+                <ArrowLeft className="h-4 w-4 mr-1.5" />
                 Back
               </Button>
               <Button
@@ -290,7 +321,7 @@ export function FlightDialog({ open, airportName, onClose, onConfirm }: FlightDi
                 disabled={!pickupFlight && !pickupTime}
                 data-testid="button-pickup-confirm"
               >
-                Confirm
+                Track their flight
                 <ArrowRight className="h-4 w-4 ml-1.5" />
               </Button>
             </DialogFooter>
